@@ -5,6 +5,15 @@ import requests
 
 app = Flask(__name__)
 
+name_dict = {
+    0: 'Romans',
+    1: 'Vikings',
+    2: 'Oiseau',
+    3: 'Lance',
+    4: 'Musketeers',
+    5: 'Panache',
+    6: 'Mime'
+}
 
 def get_scores(form):
     scores = []
@@ -145,17 +154,6 @@ def print_schedule(shows, name_dict, dist_matrix):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-
-        name_dict = {
-            0: 'Romans',
-            1: 'Vikings',
-            2: 'Oiseau',
-            3: 'Lance',
-            4: 'Musketeers',
-            5: 'Panache',
-            6: 'Mime'
-        }
-        
         scores = get_scores(request.form)
         buffer, begin_time = get_buffer_and_start_time(request.form)
         durations = [35, 26, 33, 29, 32, 34, 28]
@@ -166,7 +164,7 @@ def index():
         best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 2, buffer, min_value)
         schedule = print_schedule(best_itinerary, name_dict, distances)
         return render_template('result.html', schedule=schedule)
-    return render_template('index.html')
+    return render_template('index.html', name_dict=name_dict)
 
 if __name__ == '__main__':
     app.run(debug=True)
