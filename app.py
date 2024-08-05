@@ -133,7 +133,7 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
     while last_show is not None:
         start = f"{((last_start_time + min_value) // 60):02}:{((last_start_time + min_value) % 60):02}"
         end = f"{((last_time + min_value) // 60):02}:{((last_time + min_value) % 60):02}"
-        best_itinerary.append((last_show, start, end, dp[last_show][last_time] - (dp[backtrack[last_show][last_time][0]][backtrack[last_show][last_time][1]] if backtrack[last_show][last_time] else 0)))
+        best_itinerary.append((last_show, start, end))
         last_show, last_time, last_start_time = backtrack[last_show][last_time]
 
     best_itinerary.reverse()
@@ -141,18 +141,14 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
 
 def print_schedule(shows, name_dict, dist_matrix):
     schedule = []
-    total_score = 0
     for i in range(len(shows)):
-        show_id, start, end, score = shows[i]
+        show_id, start, end = shows[i]
         show_name = name_dict[show_id]
-        schedule.append(f"Watch {show_name} from {start}-{end} (Score: {score})")
-        total_score += score
+        schedule.append(f"Watch {show_name} from {start}-{end}")
         if i < len(shows) - 1:
             next_show_id = shows[i + 1][0]
             walk_time = dist_matrix[show_id, next_show_id]
             schedule.append(f"Walk to {name_dict[next_show_id]} ({int(walk_time)} mins)")
-    schedule.append(f"Total Score: {total_score}")
-    schedule.append(f"Number of Shows: {len(shows)}")
     return schedule
 
 @app.route('/', methods=['GET', 'POST'])
@@ -168,7 +164,7 @@ def index():
         best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 2, buffer, min_value)
         schedule = print_schedule(best_itinerary, name_dict, distances)
         return render_template('result.html', schedule=schedule)
-    return render_template('index.html')
+    return render_template('index.html', name_dict=name_dict)
 
 if __name__ == '__main__':
     app.run(debug=True)
