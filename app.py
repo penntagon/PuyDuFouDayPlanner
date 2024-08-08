@@ -6,13 +6,13 @@ import requests
 app = Flask(__name__)
 
 name_dict = {
-    0: 'Romans',
-    1: 'Vikings',
-    2: 'Oiseau',
-    3: 'Lance',
-    4: 'Musketeers',
-    5: 'Panache',
-    6: 'Mime'
+    0: 'Le Signe du Triomphe',
+    1: 'Les Vikings',
+    2: 'Le Bal des Oiseaux Fantomes',
+    3: 'Le Secret de la Lance',
+    4: 'Mousquetaire de Richelieu',
+    5: 'Le Dernier Panache',
+    6: 'Le Mime et L\'Etoile'
 }
 
 def get_scores(form):
@@ -91,9 +91,9 @@ def adjust_showtimes(showtimes):
             sublist[i] -= min_value
     return min_value
 
-def find_best_itinerary(durations, distances, showtimes, scores, score_factor, buffer, min_value, end_time):
+def find_best_itinerary(durations, distances, showtimes, scores, score_factor, buffer, min_value):
     n = len(durations)
-    max_time = end_time
+    max_time = 24 * 60
     dp = [[-float('inf')] * (max_time + 1) for _ in range(n)]
     backtrack = [[None] * (max_time + 1) for _ in range(n)]
     seen_count = [[0] * (max_time + 1) for _ in range(n)]
@@ -167,7 +167,7 @@ def index():
         pdf_text = read_pdf()
         showtimes = get_showtimes(pdf_text, begin_time, end_time)
         min_value = adjust_showtimes(showtimes)
-        best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 2, buffer, min_value, end_time)
+        best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 2, buffer, min_value)
         schedule = print_schedule(best_itinerary, name_dict, distances)
         return render_template('result.html', schedule=schedule)
     return render_template('index.html', name_dict=name_dict)
