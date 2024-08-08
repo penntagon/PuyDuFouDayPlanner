@@ -55,7 +55,7 @@
     <h1>Show Scheduler</h1>
     <form method="post">
         {% for show in name_dict.values() %}
-            <label for="score_{{ show }}">{{ show }} Score:</label>
+            <label for="score_{{ show }}">Score for {{ show }}:</label>
             <input type="number" step="0.1" name="score_{{ show }}" required>
         {% endfor %}
         <label for="buffer">Buffer (in minutes):</label>
