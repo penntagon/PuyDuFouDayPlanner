@@ -31,11 +31,7 @@
             margin-bottom: 5px;
             background: #e7f3ff;
             border-radius: 5px;
-            display: flex;
-            align-items: center;
-        }
-        input[type="checkbox"] {
-            margin-right: 10px;
+            cursor: pointer;
         }
         .checked {
             text-decoration: line-through;
@@ -47,17 +43,13 @@
     <h1>Your Show Schedule</h1>
     <ul>
         {% for item in schedule %}
-            <li><input type="checkbox" onclick="toggleCheck(this)">{{ item }}</li>
+            <li onclick="toggleCheck(this)">{{ item }}</li>
         {% endfor %}
     </ul>
 
     <script>
-        function toggleCheck(checkbox) {
-            if (checkbox.checked) {
-                checkbox.parentElement.classList.add('checked');
-            } else {
-                checkbox.parentElement.classList.remove('checked');
-            }
+        function toggleCheck(item) {
+            item.classList.toggle('checked');
         }
     </script>
 </body>
