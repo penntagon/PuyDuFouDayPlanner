@@ -85,7 +85,11 @@ def get_showtimes(text, begin_time, end_time):
     return showtimes
 
 def adjust_showtimes(showtimes):
-    min_value = min(min(sublist) for sublist in showtimes)
+    non_empty_sublists = [sublist for sublist in showtimes if sublist]
+    if not non_empty_sublists:
+        return None
+    
+    min_value = min(min(sublist) for sublist in non_empty_sublists)
     for sublist in showtimes:
         for i in range(len(sublist)):
             sublist[i] -= min_value
