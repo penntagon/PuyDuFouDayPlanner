@@ -21,14 +21,19 @@ def get_scores(form):
         scores.append(float(form[f"score_{show}"]))
     return scores
 
-def get_buffer_and_start_time(form):
+def get_buffer_and_start_end_time(form):
     buffer = int(form["buffer"])
     begin_time = form["begin_time"]
-    if begin_time == '0':
+    end_time = form["end_time"]
+    if not begin_time:
         begin_time = 0
     else:
         begin_time = hhmm_to_minutes(begin_time)
-    return buffer, begin_time
+    if not end_time:
+        end_time = 24 * 60  # Default end time if not provided
+    else:
+        end_time = hhmm_to_minutes(end_time)
+    return buffer, begin_time, end_time
 
 def hhmm_to_minutes(time_str):
     hours, minutes = map(int, time_str.split(':'))
@@ -66,7 +71,7 @@ def find_string_in_lines(text, search_string):
     indices = [(line_number, line.find(search_string)) for line_number, line in enumerate(lines) if search_string in line]
     return indices
 
-def get_showtimes(text, begin_time):
+def get_showtimes(text, begin_time, end_time):
     roman_index = find_string_in_lines(text, "LE SIGNE DU TRIOMPHE35")
     lines = [text.splitlines()[roman_index[0][0]+i] for i in [0, 1, 3, 5, 7, 8, 9]]
     showtimes = [[] for _ in lines]
@@ -74,8 +79,9 @@ def get_showtimes(text, begin_time):
         times = show.split("'")[-1].split()
         for time in times:
             hours, mins = map(int, time.split(':'))
-            if hours*60 + mins > begin_time:
-                showtimes[i].append(hours*60 + mins)
+            minutes = hours * 60 + mins
+            if begin_time <= minutes <= end_time:
+                showtimes[i].append(minutes)
     return showtimes
 
 def adjust_showtimes(showtimes):
@@ -85,9 +91,9 @@ def adjust_showtimes(showtimes):
             sublist[i] -= min_value
     return min_value
 
-def find_best_itinerary(durations, distances, showtimes, scores, score_factor, buffer, min_value):
+def find_best_itinerary(durations, distances, showtimes, scores, score_factor, buffer, min_value, end_time):
     n = len(durations)
-    max_time = 24 * 60
+    max_time = end_time
     dp = [[-float('inf')] * (max_time + 1) for _ in range(n)]
     backtrack = [[None] * (max_time + 1) for _ in range(n)]
     seen_count = [[0] * (max_time + 1) for _ in range(n)]
@@ -155,13 +161,13 @@ def print_schedule(shows, name_dict, dist_matrix):
 def index():
     if request.method == 'POST':
         scores = get_scores(request.form)
-        buffer, begin_time = get_buffer_and_start_time(request.form)
+        buffer, begin_time, end_time = get_buffer_and_start_end_time(request.form)
         durations = [35, 26, 33, 29, 32, 34, 28]
         distances = create_distance_matrix()
         pdf_text = read_pdf()
-        showtimes = get_showtimes(pdf_text, begin_time)
+        showtimes = get_showtimes(pdf_text, begin_time, end_time)
         min_value = adjust_showtimes(showtimes)
-        best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 2, buffer, min_value)
+        best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 2, buffer, min_value, end_time)
         schedule = print_schedule(best_itinerary, name_dict, distances)
         return render_template('result.html', schedule=schedule)
     return render_template('index.html', name_dict=name_dict)
