@@ -60,8 +60,10 @@
         {% endfor %}
         <label for="buffer">Buffer (in minutes):</label>
         <input type="number" name="buffer" required>
-        <label for="begin_time">Start Time (HH:MM or 0 for earliest):</label>
-        <input type="text" name="begin_time" required>
+        <label for="begin_time">Start Time (HH:MM or leave blank for earliest):</label>
+        <input type="text" name="begin_time">
+        <label for="end_time">End Time (HH:MM or leave blank for latest):</label>
+        <input type="text" name="end_time">
         <button type="submit">Submit</button>
     </form>
 </body>
