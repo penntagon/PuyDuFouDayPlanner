@@ -112,6 +112,8 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
 
     for current_time in range(max_time + 1):
         for show in range(n):
+            if not showtimes[show]:
+                continue  # Skip if there are no showtimes for the next show
             if dp[show][current_time] > -float('inf'):
                 for next_show in range(n):
                     travel_time = distances[show][next_show] if next_show != show else 0
