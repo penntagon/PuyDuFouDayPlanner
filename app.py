@@ -129,7 +129,7 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
                             if seen_count[show][current_time] == 0:
                                 new_score = dp[show][current_time] + scores[next_show]
                             else:
-                                new_score = dp[show][current_time] -1#+ scores[next_show] / (score_factor ** seen_count[next_show][current_time])
+                                new_score = dp[show][current_time] + scores[next_show] / (score_factor ** seen_count[next_show][current_time])
 
                             if new_score > dp[next_show][next_end_time]:
                                 dp[next_show][next_end_time] = new_score
@@ -178,7 +178,7 @@ def index():
         pdf_text = read_pdf(load_tomorrow)
         showtimes = get_showtimes(pdf_text, begin_time, end_time)
         min_value = adjust_showtimes(showtimes)
-        best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 2, buffer, min_value)
+        best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 10, buffer, min_value)
         schedule = print_schedule(best_itinerary, name_dict, distances)
         return render_template('result.html', schedule=schedule)
     return render_template('index.html', name_dict=name_dict)
