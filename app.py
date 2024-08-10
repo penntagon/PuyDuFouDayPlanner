@@ -55,8 +55,8 @@ def create_distance_matrix():
     matrix += matrix.T
     return matrix
 
-def read_pdf():
-    pdf_url = "https://www.puydufou.com/france/en/program-day/download-today"
+def read_pdf(load_tomorrow=False):
+    pdf_url = "https://www.puydufou.com/france/en/program-day/download-tomorrow" if load_tomorrow else "https://www.puydufou.com/france/en/program-day/download-today"
     response = requests.get(pdf_url)
     pdf_filename = "downloaded_file.pdf"
     with open(pdf_filename, "wb") as pdf_file:
@@ -174,7 +174,8 @@ def index():
         buffer, begin_time, end_time = get_buffer_and_start_end_time(request.form)
         durations = [35, 26, 33, 29, 32, 34, 28]
         distances = create_distance_matrix()
-        pdf_text = read_pdf()
+        load_tomorrow = 'load_tomorrow' in request.form
+        pdf_text = read_pdf(load_tomorrow)
         showtimes = get_showtimes(pdf_text, begin_time, end_time)
         min_value = adjust_showtimes(showtimes)
         best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 2, buffer, min_value)
