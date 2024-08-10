@@ -98,10 +98,8 @@ def adjust_showtimes(showtimes):
 def find_best_itinerary(durations, distances, showtimes, scores, score_factor, buffer, min_value):
     n = len(durations)
     max_time = 24 * 60
-    dp = [[-float('inf')] * (max_time + 1) for _ in range(n)]
-    backtrack = [[None] * (max_time + 1) for _ in range(n)]
+    dp = [[[] for _ in range(max_time + 1)] for _ in range(n)]  # Store itineraries here
     start_times_record = [[None] * (max_time + 1) for _ in range(n)]
-    seen_shows = [[set() for _ in range(max_time + 1)] for _ in range(n)]
 
     for show in range(n):
         if not showtimes[show]:
@@ -109,51 +107,50 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
         for start_time in showtimes[show]:
             end_time = start_time + durations[show]
             if end_time <= max_time:
-                dp[show][end_time] = scores[show]
-                backtrack[show][end_time] = (None, None, None)
+                dp[show][end_time].append([(show, start_time, end_time)])
                 start_times_record[show][end_time] = start_time
-                seen_shows[show][end_time].add(show)
 
     for current_time in range(max_time + 1):
         for show in range(n):
-            if not showtimes[show]:
-                continue  # Skip if there are no showtimes for this show
-            if dp[show][current_time] > -float('inf'):
-                for next_show in range(n):
-                    travel_time = distances[show][next_show] if next_show != show else 0
-                    if not showtimes[next_show]:
-                        continue  # Skip if there are no showtimes for the next show
-                    for next_start_time in showtimes[next_show]:
-                        next_end_time = next_start_time + durations[next_show]
-                        if next_start_time >= current_time + travel_time + buffer and next_end_time <= max_time:
-                            # Calculate new score considering the previous sightings of the show
-                            reduction_factor = score_factor ** len(seen_shows[show][current_time])
-                            new_score = dp[show][current_time] + scores[next_show] / reduction_factor
-                            
-                            if new_score > dp[next_show][next_end_time]:
-                                dp[next_show][next_end_time] = new_score
-                                backtrack[next_show][next_end_time] = (show, current_time, start_times_record[show][current_time])
-                                seen_shows[next_show][next_end_time] = seen_shows[show][current_time].copy()
-                                seen_shows[next_show][next_end_time].add(next_show)
+            if not showtimes[show] or not dp[show][current_time]:
+                continue  # Skip if there are no showtimes or no valid paths
+            for next_show in range(n):
+                travel_time = distances[show][next_show] if next_show != show else 0
+                if not showtimes[next_show]:
+                    continue  # Skip if there are no showtimes for the next show
+                for next_start_time in showtimes[next_show]:
+                    next_end_time = next_start_time + durations[next_show]
+                    if next_start_time >= current_time + travel_time + buffer and next_end_time <= max_time:
+                        for itinerary in dp[show][current_time]:
+                            new_itinerary = itinerary + [(next_show, next_start_time, next_end_time)]
+                            dp[next_show][next_end_time].append(new_itinerary)
+                            start_times_record[next_show][next_end_time] = next_start_time
 
+    # Post-process the itineraries to apply score reduction
     max_score = -float('inf')
-    last_show, last_time, last_start_time = None, None, None
+    best_itinerary = None
 
     for show in range(n):
         for time in range(max_time + 1):
-            if dp[show][time] > max_score:
-                max_score = dp[show][time]
-                last_show, last_time, last_start_time = show, time, start_times_record[show][time]
+            for itinerary in dp[show][time]:
+                seen_shows = {}
+                score = 0
+                for (s, _, _) in itinerary:
+                    seen_shows[s] = seen_shows.get(s, 0) + 1
+                    score += scores[s] / (score_factor ** (seen_shows[s] - 1))
+                
+                if score > max_score:
+                    max_score = score
+                    best_itinerary = itinerary
 
-    best_itinerary = []
-    while last_show is not None:
-        start = f"{((last_start_time + min_value) // 60):02}:{((last_start_time + min_value) % 60):02}"
-        end = f"{((last_time + min_value) // 60):02}:{((last_time + min_value) % 60):02}"
-        best_itinerary.append((last_show, start, end))
-        last_show, last_time, last_start_time = backtrack[last_show][last_time]
+    formatted_itinerary = []
+    for (show, start_time, end_time) in best_itinerary:
+        start = f"{((start_time + min_value) // 60):02}:{((start_time + min_value) % 60):02}"
+        end = f"{((end_time + min_value) // 60):02}:{((end_time + min_value) % 60):02}"
+        formatted_itinerary.append((show, start, end))
 
-    best_itinerary.reverse()
-    return best_itinerary
+    return formatted_itinerary
+
 def print_schedule(shows, name_dict, dist_matrix):
     schedule = []
     for i in range(len(shows)):
