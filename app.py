@@ -129,7 +129,7 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
                             if seen_count[show][current_time] == 0:
                                 new_score = dp[show][current_time] + scores[next_show]
                             else:
-                                new_score = dp[show][current_time] + scores[next_show] / (score_factor ** seen_count[next_show][current_time])
+                                new_score = dp[show][current_time] -1#+ scores[next_show] / (score_factor ** seen_count[next_show][current_time])
 
                             if new_score > dp[next_show][next_end_time]:
                                 dp[next_show][next_end_time] = new_score
