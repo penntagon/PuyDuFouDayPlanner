@@ -35,6 +35,9 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
         button {
             display: block;
             width: 100%;
@@ -64,6 +67,9 @@
         <input type="text" name="begin_time">
         <label for="end_time">End Time (HH:MM or leave blank for latest):</label>
         <input type="text" name="end_time">
+        <label for="load_tomorrow">
+            <input type="checkbox" id="load_tomorrow" name="load_tomorrow"> Load Tomorrow's Schedule
+        </label>
         <button type="submit">Submit</button>
     </form>
 </body>
