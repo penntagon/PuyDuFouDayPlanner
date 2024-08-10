@@ -100,8 +100,8 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
     max_time = 24 * 60
     dp = [[-float('inf')] * (max_time + 1) for _ in range(n)]
     backtrack = [[None] * (max_time + 1) for _ in range(n)]
-    seen_count = [[0] * (max_time + 1) for _ in range(n)]
     start_times_record = [[None] * (max_time + 1) for _ in range(n)]
+    seen_shows = [[set() for _ in range(max_time + 1)] for _ in range(n)]
 
     for show in range(n):
         if not showtimes[show]:
@@ -112,12 +112,12 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
                 dp[show][end_time] = scores[show]
                 backtrack[show][end_time] = (None, None, None)
                 start_times_record[show][end_time] = start_time
-                seen_count[show][end_time] = 1
+                seen_shows[show][end_time].add(show)
 
     for current_time in range(max_time + 1):
         for show in range(n):
             if not showtimes[show]:
-                continue  # Skip if there are no showtimes for the next show
+                continue  # Skip if there are no showtimes for this show
             if dp[show][current_time] > -float('inf'):
                 for next_show in range(n):
                     travel_time = distances[show][next_show] if next_show != show else 0
@@ -126,15 +126,15 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
                     for next_start_time in showtimes[next_show]:
                         next_end_time = next_start_time + durations[next_show]
                         if next_start_time >= current_time + travel_time + buffer and next_end_time <= max_time:
-                            if seen_count[show][current_time] == 0:
-                                new_score = dp[show][current_time] + scores[next_show]
-                            else:
-                                new_score = dp[show][current_time] + scores[next_show] / (score_factor ** seen_count[next_show][current_time])
-
+                            # Calculate new score considering the previous sightings of the show
+                            reduction_factor = score_factor ** len(seen_shows[show][current_time])
+                            new_score = dp[show][current_time] + scores[next_show] / reduction_factor
+                            
                             if new_score > dp[next_show][next_end_time]:
                                 dp[next_show][next_end_time] = new_score
                                 backtrack[next_show][next_end_time] = (show, current_time, start_times_record[show][current_time])
-                                seen_count[next_show][next_end_time] = seen_count[show][current_time] + (1 if next_show == show else 0)
+                                seen_shows[next_show][next_end_time] = seen_shows[show][current_time].copy()
+                                seen_shows[next_show][next_end_time].add(next_show)
 
     max_score = -float('inf')
     last_show, last_time, last_start_time = None, None, None
@@ -154,7 +154,6 @@ def find_best_itinerary(durations, distances, showtimes, scores, score_factor, b
 
     best_itinerary.reverse()
     return best_itinerary
-
 def print_schedule(shows, name_dict, dist_matrix):
     schedule = []
     for i in range(len(shows)):
