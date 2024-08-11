@@ -174,7 +174,7 @@ def index():
         pdf_text = read_pdf(load_tomorrow)
         showtimes = get_showtimes(pdf_text, begin_time, end_time)
         min_value = adjust_showtimes(showtimes)
-        best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 10, buffer, min_value)
+        best_itinerary = find_best_itinerary(durations, distances, showtimes, scores, 2, buffer, min_value)
         schedule = print_schedule(best_itinerary, name_dict, distances)
         return render_template('result.html', schedule=schedule)
     return render_template('index.html', name_dict=name_dict)
